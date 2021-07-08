@@ -34,7 +34,7 @@ def hello ():
     #n.withdraw()
     file_path=filedialog.askopenfilename()  
     if file_path!='':
-        df=pd.read_excel(file_path)
+        df=pd.read_csv(file_path)
         calc(df)
     canvas1.forget()
     
@@ -52,10 +52,8 @@ def hello ():
     #canvas1.create_window( window=label1)
 def calc(df):
    # df=df.split()
-    for i in df["Name"]:
+    for i in df:
         print(i)
-    print(df["Name"][1].split())
-    print(df["Total Marks"][1])
 WelcomeScreen()
 #canvas1.create_window(300, 150, window=button1)
 
