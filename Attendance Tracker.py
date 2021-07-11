@@ -3,7 +3,7 @@ from tkinter.ttk import *
 from tkinter import filedialog
 from typing import DefaultDict, Text
 import pandas as pd
-
+import pickle
 root= Tk()
 canvas1 = Canvas(root, width = 856, height = 550)
 canvas2=Canvas(root, width = 856, height = 550)
@@ -37,6 +37,7 @@ def hello ():
         with open(file_path) as df:
             df = df.read()
     calc(df)
+    write()
     canvas1.forget()
     
     #label1 = Label(root, text= df,foreground='black', font=('comic-sans',10))
@@ -78,8 +79,10 @@ class student:
         else:
             self.timeCodeTemp=0
     def determinePresent(self):
-        if self.totaltime>40:
+        if self.totaltime>40 or self.totaltime==0:
             self.present=True
+        else:
+            self.present=False
         return self.present
     def addTime2(self,timeHour, timeMinute, timeSeconds, timeCode, date, month, year):
         self.addTime(timeHour, timeMinute, timeSeconds, timeCode, date, month, year)
@@ -269,11 +272,24 @@ def calc(df):
             #studentdeclareReg[name]=1
             new=student(name, status, timeHour, timeMinute, timeSecond, date, month, year, timeCode)
             studentMap[name]=new
+            allStudents.append(studentMap[name])
             studentMap[name].dispStudent()
         else:
             print("Else entered")
             studentMap[name].addTime2(timeHour, timeMinute, timeSecond, timeCode, date, month, year)
             studentMap[name].dispStudent()
+def write():
+    with open("temp.txt", "wb") as temp:
+        for i in allStudents:
+            pickle.dump(i, temp, pickle.HIGHEST_PROTOCOL)
+    with open("temp.txt", "rb") as temp:
+        while temp:
+            try:
+                naman=pickle.load(temp)
+                naman.dispStudent()
+            except (EOFError):
+                break
+    #file.close()
 
         
 WelcomeScreen()
