@@ -63,7 +63,7 @@ class student:
     lastMonth=0
     lastYear=0
     timeCodeTemp=0
-    present=False
+    present=True
     def __init__(self, name, status, timeHour, timeMinute,  timeSeconds, date, month, year, timeCode):
         self.name=name
         self.totaltime=0
@@ -74,6 +74,7 @@ class student:
         self.lastHour=timeHour
         self.lastMinute=timeMinute
         self.lastSecond=timeSeconds
+   #     print(self.name, status, status.split(), self.lastDate, date)
         if timeCode=="\x00P\x00M\x00":
             self.timeCodeTemp=1
         else:
@@ -84,16 +85,19 @@ class student:
         else:
             self.present=False
         return self.present
-    def addTime2(self,timeHour, timeMinute, timeSeconds, timeCode, date, month, year):
-        self.addTime(timeHour, timeMinute, timeSeconds, timeCode, date, month, year)
+    def addTime2(self,timeHour, timeMinute, timeSeconds, timeCode, date, month, year, status):
+        self.addTime(timeHour, timeMinute, timeSeconds, timeCode, date, month, year, status)
         self.lastDate=date
         self.lastMonth=month
         self.lastYear=year
         self.lastHour=timeHour
         self.lastMinute=timeMinute
         self.lastSecond=timeSeconds
-    def addTime(self,timeHour, timeMinute, timeSeconds, timeCode, date, month, year):
-        if self.lastStatus=='\x00J\x00o\x00i\x00n\x00e\x00d\x00':
+    def addTime(self,timeHour, timeMinute, timeSeconds, timeCode, date, month, year, status):
+       # print(self.name, status, status.split(), self.lastDate, date)
+        if status=='\x00J\x00o\x00i\x00n\x00e\x00d\x00':
+            #print(self.name, "Returned")
+            #print(self.name, self.lastDate, date)
             return
         if self.totaltime>720:
             return
@@ -115,21 +119,22 @@ class student:
             time24HSelf=12*60+self.lastHour*60+self.lastMinute+self.lastSecond/60
         else:
             time24HSelf=self.lastHour*60+self.lastMinute+self.lastSecond/60
-        print( self.name, time24H, time24HSelf)
-        if self.lastMonth>month:
+     #   print( self.name, time24H, time24HSelf)
+        if self.lastMonth<month:
             self.present=True
             self.totaltime=720
-        elif self.lastDate>date+1:
+        elif self.lastDate<date+1:
             self.present=True
             self.totaltime=720
             return
-        elif self.lastYear>year:
+        elif self.lastYear<year:
             self.present=True
             self.totaltime=720
             return
         if self.lastDate==date:
             self.totaltime+=(time24H-time24HSelf)
         elif self.lastDate+1==date:
+            print(self.name, "This one")
             time24HSelf=1440-time24HSelf
             self.totaltime=time24HSelf+time24H
             if self.totaltime>720:
@@ -137,26 +142,49 @@ class student:
                 return
     def dispStudent(self):
         print("Name: "+self.name)
-       # print("Status: ", self.lastStatus)
+        print("Status: ", self.lastStatus)
        # print("Time: ", timeHour, ":", timeMinute, ":", timeSecond)
         print("Total Time: ", self.totaltime)
         print("Present: ", self.determinePresent())
+        print("Date: ", self.lastDate, self.lastMonth, self.lastYear)
+        print("Time", self.lastHour, self.lastMinute, self.lastSecond)
         #print("Date: ", date, month, year)
 class lecture:
     name=""
     students=[]
+    date=0
+    month=0
+    year=0
+    averageAttendance=0
+    totalStudents=0
+    students=[]
+class spreadSheet:
+    totalClasses=0
+    allClasses=[]
+    studentNames=[]
 allStudents=[]
 studentMap={}
 #studentMap=DefaultDict(lambda: 0, 0)
 studentdeclareReg={}
+def sortNameStudent(students):
+   i=0
+   for i in range(0, len(students)-1):
+       min=i
+       for j in range(i, len(students)):
+           if(students[min].name.lower()>students[j].name.lower()):
+               min=j
+       c=students[min]
+       students[min]=students[i]
+       students[i]=c
+
 def calc(df):
-    print(df)
+  #  print(df)
     df=df.split()
     i=5
-    print(df.__len__())
+   # print(df.__len__())
 
     while i<(df.__len__()):
-        print(i)
+        #print(i)
        # print(df[i])
        # print(i)
         #print(df[i])
@@ -266,19 +294,20 @@ def calc(df):
         #print(i)
         i+=1
         tempMapCheck=studentMap.get(name, 0)
-        print(tempMapCheck)
+        #print(tempMapCheck)
         if tempMapCheck==0:
-            print("If entered ", name)
+          #  print("If entered ", name)
             #studentdeclareReg[name]=1
-            new=student(name, status, timeHour, timeMinute, timeSecond, date, month, year, timeCode)
+            new=student(name, statusStr, timeHour, timeMinute, timeSecond, date, month, year, timeCode)
             studentMap[name]=new
             allStudents.append(studentMap[name])
-            studentMap[name].dispStudent()
+         #   studentMap[name].dispStudent()
         else:
-            print("Else entered")
-            studentMap[name].addTime2(timeHour, timeMinute, timeSecond, timeCode, date, month, year)
-            studentMap[name].dispStudent()
+         #   print("Else entered")
+            studentMap[name].addTime2(timeHour, timeMinute, timeSecond, timeCode, date, month, year, statusStr)
+          #  studentMap[name].dispStudent()
 def write():
+    sortNameStudent(allStudents)
     with open("temp.txt", "wb") as temp:
         for i in allStudents:
             pickle.dump(i, temp, pickle.HIGHEST_PROTOCOL)
@@ -286,6 +315,7 @@ def write():
         while temp:
             try:
                 naman=pickle.load(temp)
+                #if naman.present==False:
                 naman.dispStudent()
             except (EOFError):
                 break
